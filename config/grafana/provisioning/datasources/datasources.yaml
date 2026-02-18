@@ -1,0 +1,26 @@
+# ABOUTME: Grafana datasource provisioning for the observability stack.
+# ABOUTME: Auto-configures Jaeger, Loki, and Prometheus on first boot.
+
+apiVersion: 1
+
+datasources:
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    isDefault: false
+    editable: false
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: false
+    editable: false
+
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
