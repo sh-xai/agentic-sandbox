@@ -1,0 +1,131 @@
+/* ABOUTME: CSS module for the log viewer page. */
+/* ABOUTME: Styles the log table, filter controls, and log level indicators. */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tableWrap {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.logRow {
+  font-size: 0.8125rem;
+  vertical-align: top;
+}
+
+.logRow:hover {
+  background: var(--bg-tertiary);
+}
+
+.logTimestamp {
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-size: 0.75rem;
+}
+
+.logMessage {
+  font-family: var(--font-mono);
+  word-break: break-all;
+  white-space: pre-wrap;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.logLabel {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.levelInfo {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.levelWarn {
+  color: var(--warning);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.levelError {
+  color: var(--error);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.levelDebug {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.levelDefault {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.emptyState {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 3rem;
+  text-align: center;
+}
+
+.errorState {
+  color: var(--error);
+  padding: 2rem;
+  text-align: center;
+}
+
+.pollingIndicator {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pollingDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
