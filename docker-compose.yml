@@ -27,6 +27,7 @@ services:
     build: ./services/agent
     networks:
       - agent-net
+      - observability-net
     cap_drop:
       - ALL
     read_only: true
@@ -75,6 +76,7 @@ services:
       - "${OPA_PORT:-8181}:8181"
     networks:
       - agent-net
+      - observability-net
     volumes:
       - ./policies:/policies:ro
 
