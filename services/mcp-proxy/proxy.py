@@ -54,8 +54,13 @@ def _populate_category_map(tools: list[dict]) -> dict[str, str]:
     category_map = {}
     for tool in tools:
         name = tool.get("name", "")
-        # FastMCP stores tags in the tool annotations
-        tags = tool.get("annotations", {}).get("tags", [])
+        # FastMCP stores tags at _meta._fastmcp.tags in the tool JSON.
+        # Fall back to top-level tags or annotations.tags for other implementations.
+        tags = (
+            tool.get("_meta", {}).get("_fastmcp", {}).get("tags", [])
+            or tool.get("tags", [])
+            or tool.get("annotations", {}).get("tags", [])
+        )
         # Derive category from tags: destructive > write > read
         if "destructive" in tags:
             category_map[name] = "destructive"
