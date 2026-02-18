@@ -94,7 +94,8 @@ function containerToService(container: string): string {
 }
 
 function serviceToContainerPattern(service: string): string {
-  return `.*${service}.*`;
+  // Container names are "/agenticsandbox-<service>-<replica>"
+  return `.*-${service}-.*`;
 }
 
 // --- Main page ---
