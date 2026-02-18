@@ -1,0 +1,2 @@
+# ABOUTME: Docker Compose definition for the full agentic observability sandbox (11 services).
+# ABOUTME: Defines agent-net, observability-net, and frontend-net with security hardening.

@@ -1,0 +1,8 @@
+{
+  "__comment_aboutme": "Grafana dashboard definition for MCP tool call overview metrics.",
+  "__comment_aboutme2": "Backup JSON that can be imported into Grafana for quick setup.",
+  "dashboard": {
+    "title": "MCP Overview",
+    "panels": []
+  }
+}
