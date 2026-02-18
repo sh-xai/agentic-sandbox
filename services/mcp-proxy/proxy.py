@@ -48,6 +48,11 @@ _tool_cache: list[dict] = []
 _tool_category_map: dict[str, str] = {}
 _cache_lock = asyncio.Lock()
 
+# Per-session queues for injecting policy denial errors into the SSE stream.
+# The MCP SSE transport ignores POST response bodies; responses must arrive
+# as SSE "message" events for the client to process them.
+_session_error_queues: dict[str, asyncio.Queue] = {}
+
 
 def _populate_category_map(tools: list[dict]) -> dict[str, str]:
     """Build a tool-name-to-category mapping from tool metadata."""
@@ -275,10 +280,30 @@ async def sse_proxy(request: Request):
 
     This proxy rewrites the message endpoint URL so the agent sends
     its messages through the proxy instead of directly to the MCP server.
+
+    Policy denial errors are injected into the stream as JSON-RPC error
+    events because the MCP SSE client ignores POST response bodies.
     """
     client: httpx.AsyncClient = request.app.state.http_client
 
     async def stream_sse():
+        session_id = None
+        error_queue: asyncio.Queue[dict] = asyncio.Queue()
+        line_queue: asyncio.Queue[tuple[str, object]] = asyncio.Queue()
+
+        async def _read_upstream(upstream_stream):
+            """Read lines from upstream and feed them into line_queue."""
+            try:
+                async for line in upstream_stream.aiter_lines():
+                    await line_queue.put(("line", line))
+                await line_queue.put(("done", None))
+            except httpx.ReadError:
+                logger.info("SSE upstream connection closed")
+                await line_queue.put(("done", None))
+            except Exception:
+                logger.exception("SSE upstream read error")
+                await line_queue.put(("done", None))
+
         with tracer.start_as_current_span(
             "sse_connect",
             attributes={"mcp.server_url": MCP_SERVER_URL},
@@ -287,28 +312,69 @@ async def sse_proxy(request: Request):
                 async with client.stream(
                     "GET", f"{MCP_SERVER_URL}/sse", timeout=None
                 ) as upstream:
-                    async for line in upstream.aiter_lines():
-                        if await request.is_disconnected():
-                            break
-                        # Rewrite the message endpoint so the agent routes
-                        # through the proxy rather than hitting the MCP server
-                        # directly. The MCP server sends something like:
-                        #   data: /messages/?session_id=abc
-                        # We rewrite it to point at our own /messages/ endpoint.
-                        if line.startswith("data: ") and "/messages/" in line:
-                            path = line[len("data: "):]
-                            rewritten = f"data: /messages/{path.split('/messages/')[-1]}"
-                            yield rewritten + "\n"
-                        else:
-                            # Opportunistically populate tool cache from
-                            # tools/list responses flowing through the stream
-                            if line.startswith("data: "):
-                                _try_cache_from_sse(line[len("data: "):])
-                            yield line + "\n"
-            except httpx.ReadError:
-                logger.info("SSE upstream connection closed")
+                    reader_task = asyncio.create_task(_read_upstream(upstream))
+                    try:
+                        while True:
+                            if await request.is_disconnected():
+                                break
+
+                            # Drain any pending policy denial errors
+                            while not error_queue.empty():
+                                try:
+                                    error_event = error_queue.get_nowait()
+                                    event_data = json.dumps(error_event)
+                                    yield f"event: message\ndata: {event_data}\n\n"
+                                except asyncio.QueueEmpty:
+                                    break
+
+                            # Wait for next upstream line (with timeout to
+                            # periodically check error queue and disconnection)
+                            try:
+                                msg_type, msg_data = await asyncio.wait_for(
+                                    line_queue.get(), timeout=1.0
+                                )
+                            except asyncio.TimeoutError:
+                                continue
+
+                            if msg_type == "done":
+                                break
+
+                            line = msg_data
+
+                            # Rewrite the message endpoint so the agent routes
+                            # through the proxy rather than hitting the MCP server
+                            # directly. The MCP server sends something like:
+                            #   data: /messages/?session_id=abc
+                            # We rewrite it to point at our own /messages/ endpoint.
+                            if line.startswith("data: ") and "/messages/" in line:
+                                path = line[len("data: "):]
+                                rewritten = f"data: /messages/{path.split('/messages/')[-1]}"
+
+                                # Register error queue for this session
+                                if "session_id=" in path:
+                                    sid = path.split("session_id=")[-1].split("&")[0]
+                                    if sid:
+                                        session_id = sid
+                                        _session_error_queues[session_id] = error_queue
+
+                                yield rewritten + "\n"
+                            else:
+                                # Opportunistically populate tool cache from
+                                # tools/list responses flowing through the stream
+                                if line.startswith("data: "):
+                                    _try_cache_from_sse(line[len("data: "):])
+                                yield line + "\n"
+                    finally:
+                        reader_task.cancel()
+                        try:
+                            await reader_task
+                        except asyncio.CancelledError:
+                            pass
             except Exception:
                 logger.exception("SSE proxy error")
+            finally:
+                if session_id:
+                    _session_error_queues.pop(session_id, None)
 
     return StreamingResponse(stream_sse(), media_type="text/event-stream")
 
@@ -364,13 +430,27 @@ async def forward_message(request: Request, path: str = ""):
                 if not allowed:
                     logger.warning("OPA DENIED tool call: %s (category=%s)", tool_name, category)
                     tool_span.set_status(StatusCode.ERROR, "Policy denied")
-                    return JSONResponse(
-                        _make_jsonrpc_error(
-                            request_id,
-                            -32001,
-                            f"Policy denied: tool '{tool_name}' (category={category}) is not allowed",
-                        )
+
+                    error_response = _make_jsonrpc_error(
+                        request_id,
+                        -32001,
+                        f"Policy denied: tool '{tool_name}' (category={category}) is not allowed",
                     )
+
+                    # Inject error into the SSE stream for this session.
+                    # The MCP SSE client ignores POST response bodies and only
+                    # processes responses that arrive as SSE "message" events.
+                    query_string = str(request.url.query)
+                    sid = None
+                    if "session_id=" in query_string:
+                        sid = query_string.split("session_id=")[-1].split("&")[0]
+
+                    if sid and sid in _session_error_queues:
+                        await _session_error_queues[sid].put(error_response)
+                        return Response(status_code=202)
+
+                    # Fallback if session not found
+                    return JSONResponse(error_response, status_code=400)
 
                 logger.info("OPA ALLOWED tool call: %s (category=%s)", tool_name, category)
 
