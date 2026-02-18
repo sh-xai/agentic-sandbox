@@ -87,6 +87,16 @@ function truncateMessage(line: string, max: number = 120): string {
   return line.substring(0, max) + "...";
 }
 
+function containerToService(container: string): string {
+  // "/agenticsandbox-mcp-proxy-1" → "mcp-proxy"
+  const name = container.replace(/^\//, "").replace(/^agenticsandbox-/, "").replace(/-\d+$/, "");
+  return name || container;
+}
+
+function serviceToContainerPattern(service: string): string {
+  return `.*${service}.*`;
+}
+
 // --- Main page ---
 
 export default function LogsPage() {
@@ -102,8 +112,8 @@ export default function LogsPage() {
   const fetchLogs = useCallback(async () => {
     try {
       const query = serviceFilter
-        ? `{job="${serviceFilter}"}`
-        : '{job=~".+"}';
+        ? `{container=~"${serviceToContainerPattern(serviceFilter)}"}`
+        : '{container=~".+"}';
       const res = await fetch(
         `/api/logs?query=${encodeURIComponent(query)}&limit=200`
       );
@@ -170,8 +180,7 @@ export default function LogsPage() {
       const q = search.toLowerCase();
       result = result.filter((log) =>
         log.line.toLowerCase().includes(q) ||
-        (log.labels.job ?? "").toLowerCase().includes(q) ||
-        (log.labels.service ?? "").toLowerCase().includes(q)
+        containerToService(log.labels.container ?? "").toLowerCase().includes(q)
       );
     }
 
@@ -181,8 +190,8 @@ export default function LogsPage() {
   const uniqueServices = useMemo(() => {
     const svcSet = new Set<string>();
     for (const log of logs) {
-      const svc = log.labels.job || log.labels.service;
-      if (svc) svcSet.add(svc);
+      const raw = log.labels.container || log.labels.job || log.labels.service;
+      if (raw) svcSet.add(containerToService(raw));
     }
     return Array.from(svcSet);
   }, [logs]);
@@ -307,7 +316,7 @@ export default function LogsPage() {
             <tbody>
               {filtered.map((log, idx) => {
                 const isExpanded = expandedIdx === idx;
-                const svc = log.labels.job || log.labels.service || "-";
+                const svc = containerToService(log.labels.container || log.labels.job || log.labels.service || "-");
                 return (
                   <LogRow
                     key={`${log.timestamp}-${idx}`}
