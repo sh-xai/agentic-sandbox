@@ -110,8 +110,7 @@ async def _connect_to_mcp() -> None:
                     }
                 }
             )
-            await client.__aenter__()
-            tools = client.get_tools()
+            tools = await client.get_tools()
             if not tools:
                 raise RuntimeError("MCP proxy returned zero tools")
 
@@ -212,11 +211,7 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
-        if _mcp_client:
-            try:
-                await _mcp_client.__aexit__(None, None, None)
-            except Exception:
-                logger.exception("Error closing MCP client")
+        pass
 
 
 app = FastAPI(title="Agent", lifespan=lifespan)

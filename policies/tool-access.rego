@@ -2,6 +2,9 @@
 # ABOUTME: Classifies tools as read/write/destructive and enforces allow/deny rules.
 package tool_access
 
+import future.keywords.in
+import future.keywords.if
+
 default allow := false
 
 # Tool-to-category mapping for reference and validation.
