@@ -21,6 +21,7 @@ services:
     networks:
       - frontend-net
       - observability-net
+      - agent-net
 
   # ---------- Agent core ----------
   agent:
