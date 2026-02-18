@@ -1,5 +1,5 @@
 // ABOUTME: Policy management page for viewing and editing OPA tool access policies.
-// ABOUTME: CRUD interface for Rego rules with a policy tester for access decisions.
+// ABOUTME: Stats bar, policy table with expandable rows, Rego editor, and policy tester with badges.
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -39,7 +39,6 @@ export default function PoliciesPage() {
     }
   }, []);
 
-  // Auto-refresh policy list every 30s
   useEffect(() => {
     fetchPolicies();
     const interval = setInterval(fetchPolicies, 30000);
@@ -128,159 +127,228 @@ export default function PoliciesPage() {
 
   const getPolicyPreview = (raw: string): string => {
     const lines = raw.split("\n").filter((l) => l.trim());
-    return lines.slice(0, 2).join("\n");
+    return lines.slice(0, 2).join(" \u2014 ");
   };
 
   return (
-    <div>
+    <div className={styles.page}>
+      {/* Header */}
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Policy Management</h1>
           <p className={styles.subtitle}>OPA tool access policies (Rego)</p>
         </div>
-        <div className={styles.controls}>
+        <div className={styles.headerActions}>
           <button onClick={fetchPolicies}>Refresh</button>
-          <span className={styles.pollingIndicator}>
-            <span className={styles.pollingDot} />
-            30s
-          </span>
+          <span className={styles.liveDot} />
+          <span className={styles.liveText}>30s</span>
         </div>
       </div>
 
-      {error && <div className={styles.errorState}>{error}</div>}
+      {error && <div className={styles.errorBanner}>{error}</div>}
+
+      {/* Stats bar */}
+      <div className={styles.statsBar}>
+        <div className={styles.stat}>
+          <span className={styles.statValue}>{loading ? "\u2014" : policies.length}</span>
+          <span className={styles.statLabel}>Policies Loaded</span>
+        </div>
+        <div className={styles.stat}>
+          <span className={styles.statValue}>
+            {testResult ? (
+              <span className={`${styles.inlineBadge} ${
+                testResult.allowed ? styles.inlineBadgeAllowed : styles.inlineBadgeDenied
+              }`}>
+                {testResult.allowed ? "ALLOWED" : "DENIED"}
+              </span>
+            ) : "--"}
+          </span>
+          <span className={styles.statLabel}>Last Test</span>
+        </div>
+      </div>
 
       <div className={styles.columns}>
-        {/* Left column: Policy List */}
+        {/* Left column: Policy Table */}
         <div>
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Loaded Policies</div>
-            {loading && policies.length === 0 ? (
-              <div className={styles.emptyState}>Loading policies...</div>
-            ) : policies.length === 0 ? (
-              <div className={styles.emptyState}>No policies loaded</div>
-            ) : (
-              <div className={styles.policyList}>
-                {policies.map((policy) => {
-                  const isExpanded = expandedPolicyId === policy.id;
-                  return (
-                    <div
-                      key={policy.id}
-                      className={isExpanded ? styles.policyItemExpanded : styles.policyItem}
-                      onClick={() => setExpandedPolicyId(isExpanded ? null : policy.id)}
-                    >
-                      <div className={styles.policyHeader}>
-                        <span className={styles.policyId}>{policy.id}</span>
-                        <button
-                          className={styles.deleteButton}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeletePolicy(policy.id);
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                      {!isExpanded && (
-                        <div className={styles.policyPreview}>
-                          {getPolicyPreview(policy.raw)}
-                        </div>
-                      )}
-                      {isExpanded && (
-                        <pre className={styles.policySource}>{policy.raw}</pre>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <div className={styles.sectionLabel}>Loaded Policies</div>
+          {loading && policies.length === 0 ? (
+            <div className={styles.emptyState}>Loading policies...</div>
+          ) : policies.length === 0 ? (
+            <div className={styles.emptyState}>No policies loaded</div>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={styles.colStatus}></th>
+                    <th>Policy ID</th>
+                    <th>Preview</th>
+                    <th className={styles.colAction}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {policies.map((policy) => {
+                    const isExpanded = expandedPolicyId === policy.id;
+                    return (
+                      <PolicyRow
+                        key={policy.id}
+                        policy={policy}
+                        preview={getPolicyPreview(policy.raw)}
+                        expanded={isExpanded}
+                        onToggle={() =>
+                          setExpandedPolicyId(isExpanded ? null : policy.id)
+                        }
+                        onDelete={() => handleDeletePolicy(policy.id)}
+                      />
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Right column: Editor and Tester */}
         <div>
           {/* Policy Editor */}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Upload Policy</div>
-            <div className={styles.editorForm}>
-              <input
-                type="text"
-                className={styles.inputField}
-                placeholder="Policy ID (e.g., tool_access)"
-                value={editorPolicyId}
-                onChange={(e) => setEditorPolicyId(e.target.value)}
-              />
-              <textarea
-                className={styles.regoTextarea}
-                placeholder={"package tool_access\n\ndefault allow = false\n\nallow {\n  input.category == \"read\"\n}"}
-                value={editorRego}
-                onChange={(e) => setEditorRego(e.target.value)}
-              />
-              <button
-                className={styles.uploadButton}
-                onClick={handleUploadPolicy}
-                disabled={!editorPolicyId.trim() || !editorRego.trim() || uploading}
-              >
-                {uploading ? "Uploading..." : "Upload Policy"}
-              </button>
-              {uploadMessage && (
-                <span className={uploadMessage.type === "success" ? styles.successMessage : styles.errorMessage}>
-                  {uploadMessage.text}
-                </span>
-              )}
-            </div>
+          <div className={styles.sectionLabel}>Upload Policy</div>
+          <div className={styles.editorForm}>
+            <input
+              type="text"
+              className={styles.inputField}
+              placeholder="Policy ID (e.g., tool_access)"
+              value={editorPolicyId}
+              onChange={(e) => setEditorPolicyId(e.target.value)}
+            />
+            <textarea
+              className={styles.regoTextarea}
+              placeholder={"package tool_access\n\ndefault allow = false\n\nallow {\n  input.category == \"read\"\n}"}
+              value={editorRego}
+              onChange={(e) => setEditorRego(e.target.value)}
+            />
+            <button
+              className={styles.uploadButton}
+              onClick={handleUploadPolicy}
+              disabled={!editorPolicyId.trim() || !editorRego.trim() || uploading}
+            >
+              {uploading ? "Uploading..." : "Upload Policy"}
+            </button>
+            {uploadMessage && (
+              <span className={uploadMessage.type === "success" ? styles.successMessage : styles.errorMessage}>
+                {uploadMessage.text}
+              </span>
+            )}
           </div>
 
           {/* Policy Tester */}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Test Policy</div>
-            <div className={styles.testerForm}>
-              <div className={styles.testerRow}>
-                <div className={styles.testerField}>
-                  <label className={styles.testerLabel}>Tool Name</label>
-                  <input
-                    type="text"
-                    className={styles.inputField}
-                    placeholder="e.g., read_file"
-                    value={testTool}
-                    onChange={(e) => setTestTool(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleTestPolicy();
-                    }}
-                  />
-                </div>
-                <div className={styles.testerField}>
-                  <label className={styles.testerLabel}>Category</label>
-                  <select
-                    className={styles.inputField}
-                    value={testCategory}
-                    onChange={(e) => setTestCategory(e.target.value)}
-                  >
-                    <option value="read">read</option>
-                    <option value="write">write</option>
-                    <option value="destructive">destructive</option>
-                    <option value="unknown">unknown</option>
-                  </select>
-                </div>
-                <button
-                  className={styles.testButton}
-                  onClick={handleTestPolicy}
-                  disabled={!testTool.trim() || testing}
-                >
-                  {testing ? "Testing..." : "Test"}
-                </button>
+          <div className={styles.sectionLabel} style={{ marginTop: "1rem" }}>Test Policy</div>
+          <div className={styles.testerForm}>
+            <div className={styles.testerRow}>
+              <div className={styles.testerField}>
+                <label className={styles.testerFieldLabel}>Tool Name</label>
+                <input
+                  type="text"
+                  className={styles.inputField}
+                  placeholder="e.g., read_file"
+                  value={testTool}
+                  onChange={(e) => setTestTool(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleTestPolicy();
+                  }}
+                />
               </div>
-              {testResult && (
-                <div className={testResult.allowed ? styles.testAllowed : styles.testDenied}>
-                  <span className={styles.testResultTool}>{testResult.tool}</span>
-                  ({testResult.category}):
-                  {testResult.allowed ? " ALLOWED" : " DENIED"}
-                </div>
-              )}
-              {testError && <span className={styles.errorMessage}>{testError}</span>}
+              <div className={styles.testerField}>
+                <label className={styles.testerFieldLabel}>Category</label>
+                <select
+                  className={styles.inputField}
+                  value={testCategory}
+                  onChange={(e) => setTestCategory(e.target.value)}
+                >
+                  <option value="read">read</option>
+                  <option value="write">write</option>
+                  <option value="destructive">destructive</option>
+                  <option value="unknown">unknown</option>
+                </select>
+              </div>
+              <button
+                className={styles.testButton}
+                onClick={handleTestPolicy}
+                disabled={!testTool.trim() || testing}
+              >
+                {testing ? "Testing..." : "Test"}
+              </button>
             </div>
+            {testResult && (
+              <div className={styles.testResultRow}>
+                <span className={styles.testResultTool}>{testResult.tool}</span>
+                <span className={styles.testResultCategory}>({testResult.category})</span>
+                <span className={`${styles.typeBadge} ${
+                  testResult.allowed ? styles.badgeAllowed : styles.badgeDenied
+                }`}>
+                  {testResult.allowed ? "ALLOWED" : "DENIED"}
+                </span>
+              </div>
+            )}
+            {testError && <span className={styles.errorMessage}>{testError}</span>}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+// --- Policy row ---
+
+function PolicyRow({
+  policy,
+  preview,
+  expanded,
+  onToggle,
+  onDelete,
+}: {
+  policy: OpaPolicy;
+  preview: string;
+  expanded: boolean;
+  onToggle: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <>
+      <tr
+        className={`${styles.policyRow} ${expanded ? styles.policyRowExpanded : ""}`}
+        onClick={onToggle}
+      >
+        <td className={styles.colStatus}>
+          <span className={styles.statusDot} style={{ background: "var(--success)" }} />
+        </td>
+        <td>
+          <span className={styles.policyIdText}>{policy.id}</span>
+        </td>
+        <td className={styles.colPreview}>
+          <span className={styles.previewText}>{preview}</span>
+        </td>
+        <td className={styles.colAction}>
+          <button
+            className={styles.deleteButton}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+      {expanded && (
+        <tr className={styles.detailRow}>
+          <td colSpan={4}>
+            <div className={styles.detail}>
+              <div className={styles.detailLabel}>Rego Source</div>
+              <pre className={styles.detailSource}>{policy.raw}</pre>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }

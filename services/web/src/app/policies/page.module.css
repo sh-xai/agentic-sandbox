@@ -1,47 +1,117 @@
 /* ABOUTME: CSS module for the policy management page. */
-/* ABOUTME: Styles policy list, Rego editor, policy tester, and access decision display. */
+/* ABOUTME: Styles stats bar, policy table, Rego editor, policy tester with ALLOWED/DENIED badges. */
+
+/* --- Page layout --- */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* --- Header --- */
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .title {
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   font-weight: 700;
 }
 
 .subtitle {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-
-.controls {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.pollingIndicator {
-  font-size: 0.75rem;
   color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
+  font-size: 0.8125rem;
+  margin-top: 0.125rem;
 }
 
-.pollingDot {
-  width: 6px;
-  height: 6px;
+.headerActions {
+  display: flex;
+  gap: 0.375rem;
+  align-items: center;
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--success);
   animation: pulse 1.5s infinite;
 }
 
-/* Layout columns */
+.liveText {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* --- Error banner --- */
+
+.errorBanner {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  padding: 0.625rem 1rem;
+  color: var(--error);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+/* --- Stats bar --- */
+
+.statsBar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.stat {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 0.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 90px;
+}
+
+.statValue {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
+
+.statLabel {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.inlineBadge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.inlineBadgeAllowed {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--success);
+}
+
+.inlineBadgeDenied {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--error);
+}
+
+/* --- Two-column layout --- */
 
 .columns {
   display: grid;
@@ -50,92 +120,102 @@
   align-items: start;
 }
 
-/* Section styling */
+/* --- Section label --- */
 
-.section {
-  margin-bottom: 2rem;
-}
-
-.sectionTitle {
-  font-size: 1rem;
+.sectionLabel {
+  font-size: 0.6875rem;
   font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
 }
 
-/* Policy list */
+/* --- Policy table --- */
 
-.policyList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.policyItem {
-  background: var(--bg-card);
+.tableWrap {
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
-  padding: 0.75rem 1rem;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead th {
+  background: var(--bg-secondary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  padding: 0.5rem 0.625rem;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.policyRow {
   cursor: pointer;
   transition: background 0.1s;
 }
 
-.policyItem:hover {
-  background: var(--bg-tertiary);
+.policyRow:hover {
+  background: var(--bg-secondary);
 }
 
-.policyItemExpanded {
-  composes: policyItem;
-  background: var(--bg-tertiary);
+.policyRowExpanded {
+  background: var(--bg-secondary);
 }
 
-.policyHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.policyRow td {
+  padding: 0.5rem 0.625rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.8125rem;
+  white-space: nowrap;
 }
 
-.policyId {
+/* Column widths */
+.colStatus { width: 28px; text-align: center; }
+.colPreview { white-space: normal !important; min-width: 120px; }
+.colAction { width: 60px; text-align: right; }
+
+/* Status dot */
+.statusDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* Policy ID */
+.policyIdText {
   font-family: var(--font-mono);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--accent);
   font-weight: 600;
 }
 
-.policyPreview {
+/* Preview text */
+.previewText {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: var(--text-muted);
-  margin-top: 0.375rem;
-  white-space: pre;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.4;
 }
 
-.policySource {
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  color: var(--text-primary);
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  padding: 0.75rem;
-  margin-top: 0.75rem;
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 400px;
-  overflow-y: auto;
-  line-height: 1.5;
-}
-
+/* Delete button */
 .deleteButton {
   background: none;
   border: 1px solid var(--border-color);
   color: var(--error);
-  font-size: 0.75rem;
-  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  padding: 0.125rem 0.5rem;
   border-radius: 3px;
+  cursor: pointer;
 }
 
 .deleteButton:hover {
@@ -143,22 +223,81 @@
   border-color: var(--error);
 }
 
-/* Policy editor */
+/* --- Detail row (expanded policy) --- */
+
+.detailRow td {
+  padding: 0 !important;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.detail {
+  background: var(--bg-card);
+  padding: 0.75rem 1rem;
+}
+
+.detailLabel {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.375rem;
+}
+
+.detailSource {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 0.625rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* --- Type badge --- */
+
+.typeBadge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.badgeAllowed {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--success);
+}
+
+.badgeDenied {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--error);
+}
+
+/* --- Policy editor --- */
 
 .editorForm {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .inputField {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
-  padding: 0.5rem 0.75rem;
+  padding: 0.4375rem 0.75rem;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 .inputField:focus {
@@ -170,12 +309,12 @@
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
-  padding: 0.75rem;
+  padding: 0.625rem;
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   resize: vertical;
-  min-height: 200px;
+  min-height: 180px;
   line-height: 1.5;
   tab-size: 2;
 }
@@ -190,7 +329,8 @@
   border-color: var(--accent);
   color: #000;
   font-weight: 600;
-  padding: 0.5rem 1.25rem;
+  padding: 0.375rem 1rem;
+  font-size: 0.8125rem;
   align-self: flex-start;
 }
 
@@ -204,17 +344,17 @@
   cursor: not-allowed;
 }
 
-/* Policy tester */
+/* --- Policy tester --- */
 
 .testerForm {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .testerRow {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   align-items: flex-end;
 }
 
@@ -225,8 +365,8 @@
   flex: 1;
 }
 
-.testerLabel {
-  font-size: 0.75rem;
+.testerFieldLabel {
+  font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -236,8 +376,9 @@
 .testButton {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  padding: 0.5rem 1rem;
+  padding: 0.4375rem 0.75rem;
   font-weight: 600;
+  font-size: 0.8125rem;
   white-space: nowrap;
 }
 
@@ -250,48 +391,37 @@
   cursor: not-allowed;
 }
 
-.testResult {
+.testResultRow {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius);
-}
-
-.testAllowed {
-  composes: testResult;
-  background: rgba(52, 211, 153, 0.1);
-  color: var(--success);
-  border: 1px solid rgba(52, 211, 153, 0.3);
-}
-
-.testDenied {
-  composes: testResult;
-  background: rgba(248, 113, 113, 0.1);
-  color: var(--error);
-  border: 1px solid rgba(248, 113, 113, 0.3);
+  font-size: 0.8125rem;
 }
 
 .testResultTool {
   font-family: var(--font-mono);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
+  color: var(--text-primary);
+}
+
+.testResultCategory {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 /* Feedback messages */
 
 .successMessage {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--success);
 }
 
 .errorMessage {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--error);
 }
 
-/* States */
+/* --- States --- */
 
 .emptyState {
   color: var(--text-muted);
@@ -300,11 +430,7 @@
   text-align: center;
 }
 
-.errorState {
-  color: var(--error);
-  padding: 2rem;
-  text-align: center;
-}
+/* --- Animation --- */
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }

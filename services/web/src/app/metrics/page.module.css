@@ -1,75 +1,109 @@
 /* ABOUTME: CSS module for the metrics overview page. */
-/* ABOUTME: Styles metric cards, metric table, and refresh controls. */
+/* ABOUTME: Styles compact stats bar, service status table with status dots and UP/DOWN badges. */
+
+/* --- Page layout --- */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* --- Header --- */
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .title {
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   font-weight: 700;
 }
 
 .subtitle {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  margin-top: 0.125rem;
 }
 
-.controls {
+.headerActions {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   align-items: center;
 }
 
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 1.5s infinite;
 }
 
-.card {
-  background: var(--bg-card);
+/* --- Error banner --- */
+
+.errorBanner {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  padding: 0.625rem 1rem;
+  color: var(--error);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+/* --- Stats bar --- */
+
+.statsBar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.stat {
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
-  padding: 1.25rem;
+  padding: 0.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 90px;
 }
 
-.cardLabel {
-  font-size: 0.75rem;
+.statValue {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
+
+.statDanger {
+  color: var(--error);
+}
+
+.statLabel {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* --- Section label --- */
+
+.sectionLabel {
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
+  margin-top: 1rem;
   margin-bottom: 0.5rem;
 }
 
-.cardValue {
-  font-size: 1.75rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
-}
-
-.cardUnit {
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
-  margin-top: 0.25rem;
-}
-
-.section {
-  margin-bottom: 2rem;
-}
-
-.sectionTitle {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: var(--text-secondary);
-}
+/* --- Table --- */
 
 .tableWrap {
   border: 1px solid var(--border-color);
@@ -77,22 +111,97 @@
   overflow: hidden;
 }
 
-.metricName {
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  color: var(--accent);
+.table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.metricValue {
-  font-family: var(--font-mono);
+.table thead th {
+  background: var(--bg-secondary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  padding: 0.5rem 0.625rem;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.row {
+  transition: background 0.1s;
+}
+
+.row:hover {
+  background: var(--bg-secondary);
+}
+
+.row td {
+  padding: 0.5rem 0.625rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+/* Column widths */
+.colStatus { width: 28px; text-align: center; }
+.colInstance { width: 180px; }
+.colBadge { width: 72px; text-align: center; }
+
+/* Status dot */
+.statusDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* Type badge */
+.typeBadge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.badgeUp {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--success);
+}
+
+.badgeDown {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--error);
+}
+
+/* Service name with color bar */
+.serviceName {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
   font-size: 0.8125rem;
 }
 
-.metricLabels {
+.serviceBar {
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  border-radius: 1.5px;
+  flex-shrink: 0;
+}
+
+/* Instance */
+.instanceText {
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--text-secondary);
-  font-family: var(--font-mono);
 }
+
+/* --- States --- */
 
 .emptyState {
   color: var(--text-muted);
@@ -101,27 +210,7 @@
   text-align: center;
 }
 
-.errorState {
-  color: var(--error);
-  padding: 2rem;
-  text-align: center;
-}
-
-.pollingIndicator {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.pollingDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--success);
-  animation: pulse 1.5s infinite;
-}
+/* --- Animation --- */
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
