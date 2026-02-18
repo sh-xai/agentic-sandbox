@@ -224,7 +224,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-FastAPIInstrumentor.instrument_app(app)
+FastAPIInstrumentor.instrument_app(app, excluded_urls="health,metrics,api/traces")
 
 
 # --- SSE stream snooping ---

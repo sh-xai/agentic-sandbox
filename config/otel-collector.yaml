@@ -13,6 +13,19 @@ processors:
     timeout: 1s
     send_batch_size: 1024
 
+  # Drop noisy health-check and metrics-scraping spans that drown out
+  # real MCP tool-call traces in Jaeger.
+  filter/noise:
+    error_mode: ignore
+    traces:
+      span:
+        - 'attributes["http.route"] == "/health"'
+        - 'attributes["http.route"] == "/metrics"'
+        - 'attributes["http.route"] == "/api/traces"'
+        - 'attributes["http.target"] == "/health"'
+        - 'attributes["http.target"] == "/metrics"'
+        - 'attributes["http.target"] == "/api/traces"'
+
 exporters:
   otlp/jaeger:
     endpoint: jaeger:4317
@@ -25,7 +38,7 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
+      processors: [filter/noise, batch]
       exporters: [otlp/jaeger]
     metrics:
       receivers: [otlp]
