@@ -17,7 +17,7 @@ services:
   web:
     build: ./services/web
     ports:
-      - "${WEB_PORT:-3001}:3000"
+      - "${WEB_PORT:-3001}:3001"
     networks:
       - frontend-net
       - observability-net
