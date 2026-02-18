@@ -95,3 +95,38 @@ export interface McpTool {
 export interface McpToolsResponse {
   tools: McpTool[];
 }
+
+export interface AgentStatus {
+  ready: boolean;
+  model: string;
+  tools_loaded: number;
+  tool_names: string[];
+  tasks_total: number;
+  tasks_running: number;
+}
+
+export interface AgentTask {
+  id: string;
+  task: string;
+  status: "pending" | "running" | "completed" | "failed";
+  result: string | null;
+  error: string | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface OpaPolicy {
+  id: string;
+  raw: string;
+  ast?: Record<string, unknown>;
+}
+
+export interface OpaPoliciesResponse {
+  result: OpaPolicy[];
+}
+
+export interface PolicyTestResult {
+  tool: string;
+  category: string;
+  allowed: boolean;
+}

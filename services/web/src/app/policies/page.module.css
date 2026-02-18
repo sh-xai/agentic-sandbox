@@ -1,0 +1,312 @@
+/* ABOUTME: CSS module for the policy management page. */
+/* ABOUTME: Styles policy list, Rego editor, policy tester, and access decision display. */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.pollingIndicator {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pollingDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 1.5s infinite;
+}
+
+/* Layout columns */
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Section styling */
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Policy list */
+
+.policyList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.policyItem {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.policyItem:hover {
+  background: var(--bg-tertiary);
+}
+
+.policyItemExpanded {
+  composes: policyItem;
+  background: var(--bg-tertiary);
+}
+
+.policyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.policyId {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.policyPreview {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.375rem;
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.policySource {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+
+.deleteButton {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--error);
+  font-size: 0.75rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 3px;
+}
+
+.deleteButton:hover {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: var(--error);
+}
+
+/* Policy editor */
+
+.editorForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.inputField {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.regoTextarea {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  resize: vertical;
+  min-height: 200px;
+  line-height: 1.5;
+  tab-size: 2;
+}
+
+.regoTextarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.uploadButton {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #000;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  align-self: flex-start;
+}
+
+.uploadButton:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.uploadButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Policy tester */
+
+.testerForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.testerRow {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.testerField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.testerLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.testButton {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.testButton:hover:not(:disabled) {
+  background: var(--border-color);
+}
+
+.testButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.testResult {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+}
+
+.testAllowed {
+  composes: testResult;
+  background: rgba(52, 211, 153, 0.1);
+  color: var(--success);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.testDenied {
+  composes: testResult;
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--error);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.testResultTool {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+/* Feedback messages */
+
+.successMessage {
+  font-size: 0.8125rem;
+  color: var(--success);
+}
+
+.errorMessage {
+  font-size: 0.8125rem;
+  color: var(--error);
+}
+
+/* States */
+
+.emptyState {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 2rem;
+  text-align: center;
+}
+
+.errorState {
+  color: var(--error);
+  padding: 2rem;
+  text-align: center;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
